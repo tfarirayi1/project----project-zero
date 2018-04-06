@@ -1,0 +1,59 @@
+#Shell{
+    background-color: rgba(255,138,101 ,1);
+    cursor: pointer;
+    height: 100%;
+    position: fixed;
+    width: 100%;
+    z-index: 1;
+}
+#Shell
+.path-chooser{
+    position: absolute;
+    z-index: 2;
+    width: 81%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    padding: 0.7ch;
+    opacity: 0.2;
+    font-size: 3.2ch;
+    font-family: 'Chivo';
+}
+#Shell 
+.path-viewer{
+    background-color: rgba(38,50,56 ,0.9);
+    border-radius: 0.3rem 0 0 0;
+    height: 100%;
+    left: 2ch;
+    overflow: hidden;
+    padding: 0ch;
+    position: absolute;
+    text-overflow: clip;
+    top: 0;
+    transition: left 0s linear;
+    white-space: nowrap;
+    width: calc(100% - 2ch);
+    z-index: 3;
+}
+#Shell[data-state-menu='state2']
+.path-viewer{
+    left:81%;
+}
+#Shell
+.toggle-path-chooser {
+    width: fit-content;
+    padding: 0.7ch;
+    cursor: pointer;
+    display: inline-block;
+    vertical-align: middle;
+    user-select: none;
+}
+#Shell
+.toggle-path-chooser::before {
+    margin: 0;
+    content: '\205D';
+    color: rgba(255,138,101 ,1);
+    font-size: 3ch;
+    width: fit-content;
+    line-height: 100%;
+}
