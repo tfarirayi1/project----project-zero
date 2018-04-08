@@ -3,11 +3,12 @@
     cursor: pointer;
     height: 100%;
     position: fixed;
+    user-select: none;
     width: 100%;
     z-index: 1;
 }
 #Shell
-.path-chooser{
+.path-finder{
     position: absolute;
     z-index: 2;
     width: 81%;
@@ -20,9 +21,8 @@
     font-family: 'Chivo';
 }
 #Shell 
-.path-viewer{
+.view-finder{
     background-color: rgba(38,50,56 ,0.9);
-    border-radius: 0.3rem 0 0 0;
     height: 100%;
     left: 2ch;
     overflow: hidden;
@@ -36,11 +36,11 @@
     z-index: 3;
 }
 #Shell[data-state-menu='state2']
-.path-viewer{
+.view-finder{
     left:81%;
 }
 #Shell
-.toggle-path-chooser {
+.toggle-path-finder {
     width: fit-content;
     padding: 0.7ch;
     cursor: pointer;
@@ -49,7 +49,7 @@
     user-select: none;
 }
 #Shell
-.toggle-path-chooser::before {
+.toggle-path-finder::before {
     margin: 0;
     content: '\205D';
     color: rgba(255,138,101 ,1);
