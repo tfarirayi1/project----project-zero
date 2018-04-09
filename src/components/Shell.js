@@ -1,13 +1,16 @@
-import React from 'react'
-import { BrowserRouter as Router, Route, Link } from 'react-router-dom' //eslint-disable-line
-import { Auth } from 'aws-amplify'
 import './styles/Index.css'
 import './styles/Shell.css'
+import Landing from './Landing'
 import Path1 from './Path1'
+import React from 'react'
+import { Auth } from 'aws-amplify'
+import createHistory from 'history/createBrowserHistory'
+const history = createHistory()
+const location = history.location
 class Shell extends React.Component{
     enableAuthentication(){
         Auth.configure({identityPoolId:'eu-west-1:25388842-fe3f-47da-b371-8523843a6018',userPoolId:'eu-west-1_CTOnEIecG',userPoolWebClientId:'1f39eiq38scgarj4l6hdnmlqct',mandatorySignIn:true})  
-        window.addEventListener('visibilitychange',e=>{if(!document.hidden){this.evaluateAuthentication()}})
+        //window.addEventListener('visibilitychange',e=>{if(!document.hidden){this.evaluateAuthentication()}})
     }
     getState(){
         console.log(this.state)
@@ -63,6 +66,7 @@ class Shell extends React.Component{
     cycleState(name,states){
         let next = {}
         let current = this.state
+        next[name]=states[0]
         for(var i=0;i<states.length;i++){
             if(current[name]===states[i]){
                 if(i===states.length-1){
@@ -73,30 +77,65 @@ class Shell extends React.Component{
             }
         }
         this.setState(()=>(next))
+        history.push(next[name],Object.assign({},this.state,next))
     }
     constructor(props){
         super(props)
-        this.enableAuthentication()
-        this.state={
+        //default state
+        const navigationalState={
+            name:location.state?location.state.name||props.name:props.name
+        }
+        const logicalState={
+            clearance:props.clearance,
             userid:props.userid,
             username:props.username,
-            clearance:props.clearance,
-            menu:props.menu
         }
+        const presentationalState={
+            menu:props.menu,
+        }
+        const defaultState=Object.assign({},navigationalState,logicalState,presentationalState)
+        this.state=Object.assign({},defaultState)
+        //aws user pool setup
+        this.enableAuthentication()
+        history.listen((location,action)=>{
+            console.log(action)
+            if(action==='POP'){
+                if(location.state){
+                    this.setState(()=>(location.state))
+                }
+            }
+        })
     }
-    render(){
-        const pathFinder = <div className="path-finder" onClick={e=>this.setState(()=>({menu:'default'}))}><Link to="/path1">path-finder</Link></div>
-        const pathFinderToggle = <div className="toggle-path-finder" onClick={e=>this.cycleState('menu',['default','state2'])}></div>
-        const viewFinder = <div className="view-finder">{pathFinderToggle}<Route path="/path1" component={Path1}/></div>
-
-        return <Router><div id="Shell" data-state-menu={this.state.menu}>{pathFinder}{viewFinder}</div></Router>
+    checkHistory(state){
+        //when its a pop event
+        //when you are instatntiated
     }
     componentDidMount(){
-        this.evaluateAuthentication()   
-        console.log(this)
+        // this.evaluateAuthentication()  
+        console.log('mounted') 
+        if(!history.location.state){
+            history.replace('/home',this.state)
+        }
+        
     }
-    componentDidUpdate(){
+    shouldComponentUpdate(){
+        //if navigational state change, push state
+        return true
+    }
+    getSnapshotBeforeUpdate(prevProps,prevState){
+        //history.push('/path1',prevState)
+        return null
+    }
+    componentDidUpdate(prevProps,prevState){
+        console.log(this.state)
+    }
+    render(){
+        console.log(history.location)
+        const pathFinder = <div className="path-finder">path-finder</div>
+        const pathFinderToggle = <div className="toggle-path-finder" onClick={e=>this.cycleState('name',['tich','love','fari'])}></div>
+        const viewFinder = <div className="view-finder">{pathFinderToggle}{this.state.name}</div>
+        return <div id="Shell" data-state-menu={this.state.menu}>{pathFinder}{viewFinder}</div>
     }
 }
-Shell.defaultProps={userid:'nouser',username:'anonymous',clearance:0,menu:'default'}
+Shell.defaultProps={userid:'nouser',username:'anonymous',clearance:0,menu:'default',name:'tich'}
 export default Shell
