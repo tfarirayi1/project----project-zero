@@ -1,14 +1,14 @@
 import './styles/Index.css'
 import './styles/Shell.css'
 import Landing from './Landing'
-import Path1 from './Path1'
+import Path1 from './Path1' //eslint-disable-line
 import React from 'react'
 import { Auth } from 'aws-amplify'
 const $context='Shell'
 const location=window.history
 class Shell extends React.Component{
     cycleState(property,states){
-        //update the state of a property
+        //update the state of a property...
         let nextState={}
         let currentState=this.state
         nextState[property]=states[0]
@@ -24,7 +24,7 @@ class Shell extends React.Component{
             }
         }
         this.setState(()=>(nextState))
-        //notify history
+        //...the notify history
         let newHistory=Object.assign({},window.history.state)
         Object.assign(newHistory[$context],nextState)
         window.history.pushState(newHistory,$context,$context)
@@ -32,22 +32,23 @@ class Shell extends React.Component{
     enableAuthentication(){
         Auth.configure({identityPoolId:'eu-west-1:25388842-fe3f-47da-b371-8523843a6018',userPoolId:'eu-west-1_CTOnEIecG',userPoolWebClientId:'1f39eiq38scgarj4l6hdnmlqct',mandatorySignIn:true})  
     }
-    evaluateAuthentication(){
+    identityCheck(){
         Auth.currentSession()
-            .then(result=>this.evaluateAuthenticationSuccess(result))
-            .catch(error=>this.evaluateAuthenticationException(error))
+            .then(result=>this.identityCheckSuccess(result))
+            .catch(result=>this.identityCheckException(result))
     }
-    evaluateAuthenticationException(error){
-        const setNoUser=()=>{
+    identityCheckException(error){
+        {
             const currentUser={userid:this.props.userid,username:this.props.username,clearance:this.props.clearance}
             this.setState(()=>(currentUser))
-        };setNoUser()
+        }   
     }
-    evaluateAuthenticationSuccess(session){
-        const setCurrentUser=()=>{
+    identityCheckSuccess(session){
+        {
             const currentUser={username:session.idToken.payload['email'],userid:session.idToken.payload['cognito:username'],clearance:1}
             this.setState(()=>(currentUser))
-        };setCurrentUser()
+            window.alert(JSON.stringify(currentUser))
+        }
     }
     loadHistory(){
         if(window.history.state){
@@ -57,9 +58,6 @@ class Shell extends React.Component{
         }
     }
     setupHistory(){
-        window.addEventListener('popstate',e=>{
-            this.loadHistory()  
-        })
         const newHistory={}
         newHistory[$context]=this.state
         if(!window.history.state){
@@ -73,6 +71,9 @@ class Shell extends React.Component{
                 window.history.replaceState(newHistoryEntry,$context,$context)
             }
         }
+        window.addEventListener('popstate',e=>{
+            this.loadHistory()  
+        })
     }
     signIn(){
         Auth.signIn('tfarirayi1@gmail.com','Farirayi1')
@@ -83,26 +84,27 @@ class Shell extends React.Component{
         //try again
     }
     signInSuccess(result){
-        this.evaluateAuthentication()
+        this.identityCheck()
     }
     signOut(){
         Auth.signOut()
             .then(result=>this.signOutSuccess(result))
-            .catch(error=>this.signOutException(error))
+            .catch(result=>this.signOutException(result))
     }
     signOutException(error){
         //try again
     }
     signOutSuccess(result){
-        this.evaluateAuthentication()
+        this.identityCheck()
     }
     constructor(props){
         super(props)
         //build memory
         this.state={}
-        this.state['name']=(location.state?(location.state[$context]?location.state[$context]['name']||props.name:props.name):props.name),
+        this.state['name']=(location.state?(location.state[$context]?location.state[$context]['name']||props.name:props.name):props.name)
         this.enableAuthentication()
         this.setupHistory()
+        this.identityCheck()
     }
     render(){
         const pathFinder = <div className="path-finder">path-finder</div>
