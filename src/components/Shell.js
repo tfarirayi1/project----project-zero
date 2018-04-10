@@ -24,7 +24,7 @@ class Shell extends React.Component{
             }
         }
         this.setState(()=>(nextState))
-        //notify location
+        //notify history
         let newHistory=Object.assign({},window.history.state)
         Object.assign(newHistory[$context],nextState)
         window.history.pushState(newHistory,$context,$context)
@@ -39,13 +39,13 @@ class Shell extends React.Component{
     }
     evaluateAuthenticationException(error){
         const setNoUser=()=>{
-            const currentUser = {userid:this.props.userid,username:this.props.username,clearance:this.props.clearance}
+            const currentUser={userid:this.props.userid,username:this.props.username,clearance:this.props.clearance}
             this.setState(()=>(currentUser))
         };setNoUser()
     }
     evaluateAuthenticationSuccess(session){
         const setCurrentUser=()=>{
-            const currentUser = {username:session.idToken.payload['email'],userid:session.idToken.payload['cognito:username'],clearance:1}
+            const currentUser={username:session.idToken.payload['email'],userid:session.idToken.payload['cognito:username'],clearance:1}
             this.setState(()=>(currentUser))
         };setCurrentUser()
     }
@@ -101,7 +101,6 @@ class Shell extends React.Component{
         //build memory
         this.state={}
         this.state['name']=(location.state?(location.state[$context]?location.state[$context]['name']||props.name:props.name):props.name),
-        //aws user pool setup
         this.enableAuthentication()
         this.setupHistory()
     }
@@ -113,4 +112,11 @@ class Shell extends React.Component{
     }
 }
 Shell.defaultProps={userid:'nouser',username:'anonymous',clearance:0,menu:'default',name:'tich'}
+//two types pf properties
+//external properties
+//internal properties
+//hybrid properies
+//history is saved by specific functions, not on update
+//two main components
+//the shell and its children
 export default Shell
