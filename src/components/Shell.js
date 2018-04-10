@@ -4,42 +4,77 @@ import Landing from './Landing'
 import Path1 from './Path1'
 import React from 'react'
 import { Auth } from 'aws-amplify'
-import createHistory from 'history/createBrowserHistory'
-const history = createHistory()
-const location = history.location
+const $context='Shell'
+const location=window.history
 class Shell extends React.Component{
+    cycleState(property,states){
+        //update the state of a property
+        let nextState={}
+        let currentState=this.state
+        nextState[property]=states[0]
+        for(var i=0;i<states.length;i++){
+            if(currentState[property]===states[i]){
+                if(i===states.length-1){
+                    nextState[property]=states[0]
+                    break 
+                }else{
+                    nextState[property]=states[i+1]
+                    break
+                }
+            }
+        }
+        this.setState(()=>(nextState))
+        //notify location
+        let newHistory=Object.assign({},window.history.state)
+        Object.assign(newHistory[$context],nextState)
+        window.history.pushState(newHistory,$context,$context)
+    }
     enableAuthentication(){
         Auth.configure({identityPoolId:'eu-west-1:25388842-fe3f-47da-b371-8523843a6018',userPoolId:'eu-west-1_CTOnEIecG',userPoolWebClientId:'1f39eiq38scgarj4l6hdnmlqct',mandatorySignIn:true})  
-        //window.addEventListener('visibilitychange',e=>{if(!document.hidden){this.evaluateAuthentication()}})
-    }
-    getState(){
-        console.log(this.state)
     }
     evaluateAuthentication(){
-        //check for a valid session
-        //when component mounts
-        //when signIn works
-        //when signOut works
         Auth.currentSession()
             .then(result=>this.evaluateAuthenticationSuccess(result))
             .catch(error=>this.evaluateAuthenticationException(error))
     }
     evaluateAuthenticationException(error){
-        //update state
         const setNoUser=()=>{
             const currentUser = {userid:this.props.userid,username:this.props.username,clearance:this.props.clearance}
             this.setState(()=>(currentUser))
         };setNoUser()
     }
     evaluateAuthenticationSuccess(session){
-        //update state
         const setCurrentUser=()=>{
             const currentUser = {username:session.idToken.payload['email'],userid:session.idToken.payload['cognito:username'],clearance:1}
             this.setState(()=>(currentUser))
         };setCurrentUser()
     }
+    loadHistory(){
+        if(window.history.state){
+            if(window.history.state[$context]){
+                this.setState(()=>(window.history.state[$context]))
+            }
+        }
+    }
+    setupHistory(){
+        window.addEventListener('popstate',e=>{
+            this.loadHistory()  
+        })
+        const newHistory={}
+        newHistory[$context]=this.state
+        if(!window.history.state){
+            //no location history available
+            window.history.replaceState(newHistory,$context,$context)
+        }else{
+            if(!window.history.state[$context]){
+                //location history available but none for our context
+                const locationHistory=window.history.state
+                const newHistoryEntry=Object.assign({},locationHistory,newHistory)
+                window.history.replaceState(newHistoryEntry,$context,$context)
+            }
+        }
+    }
     signIn(){
-        //on user command
         Auth.signIn('tfarirayi1@gmail.com','Farirayi1')
             .then(result=>this.signInSuccess(result))
             .catch(error=>this.signInException(error))
@@ -48,11 +83,9 @@ class Shell extends React.Component{
         //try again
     }
     signInSuccess(result){
-        //evaluate session
         this.evaluateAuthentication()
     }
     signOut(){
-        //on user command
         Auth.signOut()
             .then(result=>this.signOutSuccess(result))
             .catch(error=>this.signOutException(error))
@@ -63,77 +96,19 @@ class Shell extends React.Component{
     signOutSuccess(result){
         this.evaluateAuthentication()
     }
-    cycleState(name,states){
-        let next = {}
-        let current = this.state
-        next[name]=states[0]
-        for(var i=0;i<states.length;i++){
-            if(current[name]===states[i]){
-                if(i===states.length-1){
-                    next[name]=states[0]
-                }else{
-                    next[name]=states[i+1]
-                }
-            }
-        }
-        this.setState(()=>(next))
-        history.push(next[name],Object.assign({},this.state,next))
-    }
     constructor(props){
         super(props)
-        //default state
-        const navigationalState={
-            name:location.state?location.state.name||props.name:props.name
-        }
-        const logicalState={
-            clearance:props.clearance,
-            userid:props.userid,
-            username:props.username,
-        }
-        const presentationalState={
-            menu:props.menu,
-        }
-        const defaultState=Object.assign({},navigationalState,logicalState,presentationalState)
-        this.state=Object.assign({},defaultState)
+        //build memory
+        this.state={}
+        this.state['name']=(location.state?(location.state[$context]?location.state[$context]['name']||props.name:props.name):props.name),
         //aws user pool setup
         this.enableAuthentication()
-        history.listen((location,action)=>{
-            console.log(action)
-            if(action==='POP'){
-                if(location.state){
-                    this.setState(()=>(location.state))
-                }
-            }
-        })
-    }
-    checkHistory(state){
-        //when its a pop event
-        //when you are instatntiated
-    }
-    componentDidMount(){
-        // this.evaluateAuthentication()  
-        console.log('mounted') 
-        if(!history.location.state){
-            history.replace('/home',this.state)
-        }
-        
-    }
-    shouldComponentUpdate(){
-        //if navigational state change, push state
-        return true
-    }
-    getSnapshotBeforeUpdate(prevProps,prevState){
-        //history.push('/path1',prevState)
-        return null
-    }
-    componentDidUpdate(prevProps,prevState){
-        console.log(this.state)
+        this.setupHistory()
     }
     render(){
-        console.log(history.location)
         const pathFinder = <div className="path-finder">path-finder</div>
-        const pathFinderToggle = <div className="toggle-path-finder" onClick={e=>this.cycleState('name',['tich','love','fari'])}></div>
-        const viewFinder = <div className="view-finder">{pathFinderToggle}{this.state.name}</div>
+        const pathFinderToggle = <div className="toggle-path-finder" onClick={e=>this.cycleState('name',['love','fari','tich'])}></div>
+        const viewFinder = <div className="view-finder">{pathFinderToggle}{this.state.name}<br/><Landing/></div>
         return <div id="Shell" data-state-menu={this.state.menu}>{pathFinder}{viewFinder}</div>
     }
 }
